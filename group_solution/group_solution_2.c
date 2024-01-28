@@ -46,8 +46,9 @@ void main(int argc, char **argv)
 
         // Non-blocking receive of computed row_sums from process 1
         mtag = 2;
-        MPI_Irecv(row_sum, 50, MPI_INT, 1, mtag, MPI_COMM_WORLD, &req_r[i]); 
-        MPI_Wait(&req_r[i], &status);  // Wait for the receive to complete
+        MPI_Recv(row_sum, 50, MPI_INT, 1, mtag, MPI_COMM_WORLD, &status); 
+        
+        //MPI_Wait(&req_r[i], &status);  // Wait for the receive to complete
 
         // Print all row sums
         for(i=0; i<100; i++) { 
@@ -62,17 +63,28 @@ void main(int argc, char **argv)
         mtag = 1;
         for(i=0; i<50; i++) {
             MPI_Irecv(data[i], 100, MPI_INT, 0, mtag, MPI_COMM_WORLD, &req_r[i]);
+        } 
+
+        for(i=0; i<50; i++) {
             MPI_Wait(&req_r[i], &status);  // Wait for the receive to complete
 
             row_sum[i] = 0;
             for(j=0; j<100; j++) 
-                row_sum[i] += data[i][j]; 
+                {
+                row_sum[i] += data[i][j];
+                }
+                
+            //printf("row: ");
+            //printf(" %d ", i);
+            //printf(" %d ", row_sum[i]);
+
         } 
+
 
         // Send the computed row sums to process 0
         mtag = 2;
-        MPI_Isend(row_sum, 50, MPI_INT, 0, mtag, MPI_COMM_WORLD, &req_s);
-        MPI_Wait(&req_s, &status);  // Wait for the send to complete
+        MPI_Send(row_sum, 50, MPI_INT, 0, mtag, MPI_COMM_WORLD);
+        //MPI_Wait(&req_s, &status);  // Wait for the send to complete
     } 
 
     MPI_Finalize(); // Finalize MPI
